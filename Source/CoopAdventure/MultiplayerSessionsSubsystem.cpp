@@ -36,3 +36,11 @@ void UMultiplayerSessionsSubsystem::PrintString(const FString& message)
 		GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Cyan, message);
 	}
 }
+
+void UMultiplayerSessionsSubsystem::CreateServer(FString ServerName) {
+	PrintString("CreateServer");
+}
+
+void UMultiplayerSessionsSubsystem::FindServer(FString ServerName) {
+	PrintString("FindServer");
+}

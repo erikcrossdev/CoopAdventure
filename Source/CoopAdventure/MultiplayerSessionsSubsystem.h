@@ -23,4 +23,11 @@ public:
 	void PrintString(const FString&);
 
 	IOnlineSessionPtr SessionInterface;
+
+	UFUNCTION(BlueprintCallable)
+	void CreateServer(FString ServerName);
+
+	UFUNCTION(BlueprintCallable)
+	void FindServer(FString ServerName);
+
 };
