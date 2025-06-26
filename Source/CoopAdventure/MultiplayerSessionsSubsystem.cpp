@@ -3,11 +3,12 @@
 
 #include "MultiplayerSessionsSubsystem.h"
 #include "OnlineSubsystem.h"
-#include "OnlineSessionSettings.h"
+
 
 UMultiplayerSessionsSubsystem::UMultiplayerSessionsSubsystem()
 {
-	//PrintString("MMS Constructor");
+	CreateServerAfterDestroy = false;
+	DestroyServerName = "";
 }
 
 void UMultiplayerSessionsSubsystem::Initialize(FSubsystemCollectionBase& Collection)
@@ -22,14 +23,20 @@ void UMultiplayerSessionsSubsystem::Initialize(FSubsystemCollectionBase& Collect
 		SessionInterface = OnlineSubsystem->GetSessionInterface(); //pointer to the session interface
 		if (SessionInterface.IsValid()) {
 			PrintString("Session Interface is valid");
-			SessionInterface->OnCreateSessionCompleteDelegates.AddUObject(this, &UMultiplayerSessionsSubsystem::OnCreateSessionComplete); //bind to the delegate
+			SessionInterface->OnCreateSessionCompleteDelegates.AddUObject(this, 
+				&UMultiplayerSessionsSubsystem::OnCreateSessionComplete); //bind to the delegate
+			
+			SessionInterface->OnDestroySessionCompleteDelegates.AddUObject(this, 
+				&UMultiplayerSessionsSubsystem::OnDestroySessionComplete); //bind to the delegate
+		
+			SessionInterface->OnFindSessionsCompleteDelegates.AddUObject(this,
+				&UMultiplayerSessionsSubsystem::OnFindSessionsComplete);
 		}
 	}
 }
 
 void UMultiplayerSessionsSubsystem::Deinitialize()
 {
-	//UE_LOG(LogTemp, Warning, TEXT("MMS Deinitialize"));
 }
 
 void UMultiplayerSessionsSubsystem::PrintString(const FString& message)
@@ -54,6 +61,8 @@ void UMultiplayerSessionsSubsystem::CreateServer(FString ServerName) {
 	if (ExistingSession) {
 		FString Msg = FString::Printf(TEXT("Session alread exist, destroy it: %s"), *MySessionName.ToString());
 		PrintString(Msg);
+		CreateServerAfterDestroy = true;
+		DestroyServerName = ServerName;
 		SessionInterface->DestroySession(MySessionName); //but destroy session is a delegate and async
 		//we need to se if this async function was completed before creating the session
 		return;
@@ -74,20 +83,60 @@ void UMultiplayerSessionsSubsystem::CreateServer(FString ServerName) {
 
 	SessionSettings.bIsLANMatch = SubSystemName == "steam"? false : true;
 
+	//Add a session name
+	SessionSettings.Set(FName("SERVER_NAME"), ServerName, EOnlineDataAdvertisementType::ViaOnlineServiceAndPing);
+
 	SessionInterface->CreateSession(0, MySessionName, SessionSettings);
 }
 
 void UMultiplayerSessionsSubsystem::FindServer(FString ServerName) {
 	PrintString("FindServer");
+
+	if (ServerName.IsEmpty()) {
+		PrintString("Server name cannot be empty");
+		return;
+	}
+	SessionSearch = MakeShareable(new FOnlineSessionSearch());
+	bool isLAN = false;
+	if (IOnlineSubsystem::Get()->GetSubsystemName().ToString().ToUpper() == "NULL") {
+		isLAN = true;
+	}
+	SessionSearch->bIsLanQuery = isLAN;
+	SessionSearch->MaxSearchResults = 9999;
+	SessionSearch->QuerySettings.Set(SEARCH_PRESENCE, true, EOnlineComparisonOp::Equals);
+	SessionInterface->FindSessions(0, SessionSearch.ToSharedRef());
 }
 
 void UMultiplayerSessionsSubsystem::OnCreateSessionComplete(FName SessionName, bool WasSuccessful)
 {
 	PrintString(FString::Printf(TEXT("OnCreateSessionComplete: %d"), WasSuccessful));
-
-	//Load level
+		
 	if (WasSuccessful) 
 	{
-		GetWorld()->ServerTravel("/Game/ThirdPerson/Maps/ThirdPersonMap?listen");
+		GetWorld()->ServerTravel("/Game/ThirdPerson/Maps/ThirdPersonMap?listen");//Load level
 	}
 }
+
+void UMultiplayerSessionsSubsystem::OnDestroySessionComplete(FName SessionName, bool WasSuccessful)
+{
+	PrintString(FString::Printf(TEXT("On Destroy Session Complete: %d, Success: %d"), *SessionName.ToString(), WasSuccessful));
+
+	if (CreateServerAfterDestroy) {
+		CreateServerAfterDestroy = false;
+		CreateServer(DestroyServerName);
+	}
+}
+
+void UMultiplayerSessionsSubsystem::OnFindSessionsComplete(bool WasSuccessful)
+{
+	if (!WasSuccessful) return;
+	TArray<FOnlineSessionSearchResult> Results = SessionSearch->SearchResults;
+	if (Results.Num() > 0) {
+		FString Msg = FString::Printf(TEXT("%d sessions found"), Results.Num());
+		PrintString(Msg);
+	}
+	else {
+		PrintString("No session found");
+	}
+}
+

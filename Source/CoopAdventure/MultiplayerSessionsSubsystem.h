@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "Interfaces/OnlineSessionInterface.h"
+#include "OnlineSessionSettings.h"
 #include "MultiplayerSessionsSubsystem.generated.h"
 
 /**
@@ -31,4 +32,14 @@ public:
 	void FindServer(FString ServerName);
 
 	void OnCreateSessionComplete(FName SessionName, bool WasSuccessful);
+	void OnDestroySessionComplete(FName SessionName, bool WasSuccessful);
+
+	void OnFindSessionsComplete(bool WasSuccessful);
+
+	bool CreateServerAfterDestroy;
+	FString DestroyServerName;
+
+	//TsharedPtr is bassically a pointer that's reference counted
+	//so that you don't have to deal with deallocating the memory
+	TSharedPtr<FOnlineSessionSearch> SessionSearch;
 };
