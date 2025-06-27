@@ -36,8 +36,12 @@ public:
 
 	void OnFindSessionsComplete(bool WasSuccessful);
 
+	void OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result);
+
 	bool CreateServerAfterDestroy;
 	FString DestroyServerName;
+	FString ServerNameToFind;
+	FName MySessionName;
 
 	//TsharedPtr is bassically a pointer that's reference counted
 	//so that you don't have to deal with deallocating the memory
