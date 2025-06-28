@@ -57,6 +57,7 @@ void UMultiplayerSessionsSubsystem::CreateServer(FString ServerName) {
 	if (ServerName.IsEmpty()) 
 	{
 		PrintString("ServerName cannot be Empty");
+		ServerCreateDelegate.Broadcast(false); //Trigger delegate
 		return;
 	}
 
@@ -98,6 +99,7 @@ void UMultiplayerSessionsSubsystem::FindServer(FString ServerName) {
 
 	if (ServerName.IsEmpty()) {
 		PrintString("Server name cannot be empty");
+		ServerJoinDelegate.Broadcast(false);
 		return;
 	}
 	SessionSearch = MakeShareable(new FOnlineSessionSearch());
@@ -117,14 +119,13 @@ void UMultiplayerSessionsSubsystem::FindServer(FString ServerName) {
 void UMultiplayerSessionsSubsystem::OnCreateSessionComplete(FName SessionName, bool WasSuccessful)
 {
 	PrintString(FString::Printf(TEXT("OnCreateSessionComplete: %d"), WasSuccessful));
-		
-	UE_LOG(LogTemp, Warning, TEXT("IsServer: %s"), GetWorld()->IsServer() ? TEXT("true") : TEXT("false"));
-UE_LOG(LogTemp, Warning, TEXT("NetMode: %d"), (int)GetWorld()->GetNetMode());
-GetWorld()->ServerTravel("/Game/ThirdPerson/Maps/ThirdPersonMap?listen");
+	
+	ServerCreateDelegate.Broadcast(WasSuccessful); //Trigger delegate
 	if (WasSuccessful) 
 	{
-		//UE_LOG(LogTemp, Warning, TEXT("HasAuthority: %s"), HasAuthority() ? TEXT("true") : TEXT("false"));
-		//GetWorld()->ServerTravel("/Game/ThirdPerson/Maps/ThirdPersonMap?listen");//Load level
+		UE_LOG(LogTemp, Warning, TEXT("IsServer: %s"), GetWorld()->IsServer() ? TEXT("true") : TEXT("false"));
+		UE_LOG(LogTemp, Warning, TEXT("NetMode: %d"), (int)GetWorld()->GetNetMode());
+		
 		if(GetWorld()->IsServer()) {
 			GetWorld()->ServerTravel("/Game/ThirdPerson/Maps/ThirdPersonMap?listen");
 		}
@@ -178,10 +179,12 @@ void UMultiplayerSessionsSubsystem::OnFindSessionsComplete(bool WasSuccessful)
 		else {
 			PrintString(FString::Printf(TEXT("Could not find server named %s"), *ServerNameToFind));
 			ServerNameToFind = "";
+			ServerJoinDelegate.Broadcast(false);
 		}
 	}
 	else {
 		PrintString("No session found");
+		ServerJoinDelegate.Broadcast(false);
 	}
 }
 

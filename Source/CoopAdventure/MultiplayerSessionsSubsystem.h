@@ -8,6 +8,11 @@
 #include "OnlineSessionSettings.h"
 #include "MultiplayerSessionsSubsystem.generated.h"
 
+
+//Create a delegate, the parameters: ( name of the delegate, type of param, and param name)
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FServerCreateDelegate, bool, WasSuccessful);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FServerJoinDelegate, bool, WasSuccessful);
+
 /**
  * 
  */
@@ -46,4 +51,10 @@ public:
 	//TsharedPtr is bassically a pointer that's reference counted
 	//so that you don't have to deal with deallocating the memory
 	TSharedPtr<FOnlineSessionSearch> SessionSearch;
+
+	UPROPERTY(BlueprintAssignable)
+	FServerCreateDelegate ServerCreateDelegate;
+
+	UPROPERTY(BlueprintAssignable)
+	FServerJoinDelegate ServerJoinDelegate;
 };
