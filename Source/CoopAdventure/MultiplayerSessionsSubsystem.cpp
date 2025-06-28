@@ -190,6 +190,7 @@ void UMultiplayerSessionsSubsystem::OnFindSessionsComplete(bool WasSuccessful)
 
 void UMultiplayerSessionsSubsystem::OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result)
 {
+	ServerJoinDelegate.Broadcast(Result == EOnJoinSessionCompleteResult::Success);
 	if (Result == EOnJoinSessionCompleteResult::Success) {
 		PrintString(FString::Printf(TEXT("Successfully Joined session %s"), *SessionName.ToString()));	
 		
