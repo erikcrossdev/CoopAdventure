@@ -127,7 +127,12 @@ void UMultiplayerSessionsSubsystem::OnCreateSessionComplete(FName SessionName, b
 		UE_LOG(LogTemp, Warning, TEXT("NetMode: %d"), (int)GetWorld()->GetNetMode());
 		
 		if(GetWorld()->IsServer()) {
-			GetWorld()->ServerTravel("/Game/ThirdPerson/Maps/ThirdPersonMap?listen");
+			FString Path = "/Game/ThirdPerson/Maps/ThirdPersonMap?listen";
+			if (!GameMapPath.IsEmpty()) {
+				Path = FString::Printf(TEXT("%s?listen"), *GameMapPath);
+			}
+			GetWorld()->ServerTravel(Path);
+			
 		}
 		else {
 			UE_LOG(LogTemp, Warning, TEXT("WARNING: Tried ServerTravel on CLIENT!"));
