@@ -34,7 +34,7 @@ APressurePlate::APressurePlate()
 	auto MeshAsset = ConstructorHelpers::FObjectFinder<UStaticMesh>
 		(TEXT("/Game/Stylized_Egypt/Meshes/building/SM_building_part_08.SM_building_part_08")); //Find Shape into the mesh
 	if (MeshAsset.Succeeded()) { ///if it was found, set it
-		Mesh->SetStaticMesh(TriggerMeshAsset.Object);
+		Mesh->SetStaticMesh(MeshAsset.Object);
 		Mesh->SetRelativeScale3D(FVector(4.0f, 4.0f, 0.5f)); //change scale
 		Mesh->SetRelativeLocation(FVector(0.0f, 0.0f, 7.2f));
 	}
@@ -53,6 +53,37 @@ void APressurePlate::BeginPlay()
 void APressurePlate::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	if (HasAuthority()) { //only call on server
+		TArray<AActor*> OverlappingActors;
+		AActor* TriggerActor = 0;
+		TriggerMesh->GetOverlappingActors(OverlappingActors); //fill OverlappingActors array with all overlapping actors
+		for (int ActorIdx = 0; ActorIdx < OverlappingActors.Num(); ++ActorIdx) {
+			AActor* A = OverlappingActors[ActorIdx];
+			if (A->ActorHasTag("TriggerActor")) {
+				TriggerActor = A;
+				break;
+			}
+			//FString Msg = FString::Printf(TEXT("Name: %s"), *A->GetName());
+			//GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, Msg);
+		}
 
+		if (TriggerActor) {
+			if(!Activated) { 
+				Activated = true; 
+				FString Msg = FString::Printf(TEXT("Activated: %s"), Activated ? TEXT("true") : TEXT("false"));
+				GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, Msg);
+				OnActivated.Broadcast();
+			}			
+		}
+		else {
+			if (Activated) { 
+				Activated = false; 
+				FString Msg = FString::Printf(TEXT("Activated: %s"), Activated ? TEXT("true") : TEXT("false"));
+				GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, Msg);
+				OnDeactivated.Broadcast();
+			}
+			
+		}
+	}
 }
 
