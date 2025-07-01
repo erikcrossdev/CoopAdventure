@@ -20,20 +20,29 @@ protected:
 
 public:	
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-	FVector StartPoint;
+	FVector StartPoint; 
 	FVector EndPoint;
-	bool ArePointSet; 
+
+	bool ArePointSet; //just move if the points are set
 
 	UPROPERTY(EditAnywhere)
-	float MoveTime;
+	float MoveTime; 
 
 	UPROPERTY(EditAnywhere)
-	TArray<AActor*> TriggerActors;
+	TArray<AActor*> TriggerActors; //Pressure plates to activate transporter. set on the editor
 
 	UPROPERTY(VisibleAnywhere)
-	int ActivatedTriggerCount;
+	int ActivatedTriggerCount; //check how many pressure plates are active. 
 
 	UPROPERTY(BlueprintReadWrite, VisibleAnywhere)
-	bool AllTriggerActorsTriggered;
-		
+	bool AllTriggerActorsTriggered; //when all pressure plates are active
+
+	UFUNCTION(BlueprintCallable)
+	void SetPoints(FVector Point1, FVector Point2);
+	
+	UFUNCTION()
+	void OnPressurePlateActivated();
+
+	UFUNCTION()
+	void OnPressurePlateDeactivated();
 };
