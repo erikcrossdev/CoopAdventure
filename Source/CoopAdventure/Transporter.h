@@ -26,6 +26,9 @@ public:
 	bool ArePointSet; //just move if the points are set
 
 	UPROPERTY(EditAnywhere)
+	bool OwnerIsTriggerActor;
+
+	UPROPERTY(EditAnywhere)
 	float MoveTime; 
 
 	UPROPERTY(EditAnywhere)
