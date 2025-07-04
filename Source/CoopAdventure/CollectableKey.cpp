@@ -32,6 +32,11 @@ ACollectableKey::ACollectableKey()
 	Mesh->SetIsReplicated(true);
 	Mesh->SetCollisionProfileName(FName("OverlapAllDynamic"));
 
+	CollectAudio = CreateDefaultSubobject<UAudioComponent>(TEXT("CollectAudio"));
+	CollectAudio->SetupAttachment(RootComp);
+	CollectAudio->SetAutoActivate(false); //do not play on start
+
+	RotationSpeed = 100.0f;
 }
 
 void ACollectableKey::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -54,6 +59,9 @@ void ACollectableKey::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 	if (HasAuthority()) 
 	{
+		//Rotate the mesh
+		Mesh->AddRelativeRotation(FRotator(0.0f, RotationSpeed * DeltaTime, 0.0f));
+
 		TArray<AActor*> OverlappingActors;
 		Capsule->GetOverlappingActors(OverlappingActors, ACoopAdventureCharacter::StaticClass());
 		if (!OverlappingActors.IsEmpty() && !IsCollected) {
@@ -75,5 +83,10 @@ void ACollectableKey::OnRep_IsCollected()
 	}
 
 	Mesh->SetVisibility(!IsCollected);
+	CollectAudio->Play(); //play the audio once
+
+	if (IsCollected && KeyHolderRef) {
+		KeyHolderRef->ActivateKeyMesh();
+	}
 }
 
