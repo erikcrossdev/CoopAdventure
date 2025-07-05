@@ -7,6 +7,8 @@
 #include "Components/BoxComponent.h"
 #include "WinArea.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FWinAreaOnWinCondition);
+
 UCLASS()
 class COOPADVENTURE_API AWinArea : public AActor
 {
@@ -30,4 +32,9 @@ public:
 	UPROPERTY(BlueprintReadWrite, VisibleAnywhere)
 	bool WinCondition;
 
+	UFUNCTION(NetMulticast, Reliable) 
+	void MulticastRPCWin();
+
+	UPROPERTY(BlueprintAssignable)
+	FWinAreaOnWinCondition OnWinCondition;
 };

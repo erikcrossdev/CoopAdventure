@@ -9,6 +9,7 @@ AWinArea::AWinArea()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+	bReplicates = true;
 
 	WinAreaBox = CreateDefaultSubobject<UBoxComponent>(TEXT("WinAreaBox"));
 	SetRootComponent(WinAreaBox);
@@ -32,7 +33,14 @@ void AWinArea::Tick(float DeltaTime)
 		WinCondition = OverlapActors.Num() >= 2;
 		if (WinCondition) {
 			UE_LOG(LogTemp, Display, TEXT("We Won the game!!!"));
+			MulticastRPCWin();
 		}
 	}
+}
+
+void AWinArea::MulticastRPCWin_Implementation()
+{
+	//Fire a delegate
+	OnWinCondition.Broadcast();
 }
 
