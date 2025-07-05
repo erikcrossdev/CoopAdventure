@@ -77,6 +77,9 @@ void ACollectableKey::OnRep_IsCollected()
 	if (HasAuthority())
 	{
 		UE_LOG(LogTemp, Display, TEXT("OnRep_IsCollected was called from the server"));
+		if (IsCollected) {
+			OnCollected.Broadcast();
+		}
 	}
 	else {
 		UE_LOG(LogTemp, Display, TEXT("OnRep_IsCollected was called from the client"));
@@ -88,5 +91,6 @@ void ACollectableKey::OnRep_IsCollected()
 	if (IsCollected && KeyHolderRef) {
 		KeyHolderRef->ActivateKeyMesh();
 	}
+	
 }
 

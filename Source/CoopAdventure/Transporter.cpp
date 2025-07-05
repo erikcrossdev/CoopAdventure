@@ -1,6 +1,7 @@
 
 #include "Transporter.h"
 #include "PressurePlate.h"
+#include "CollectableKey.h"
 
 // Sets default values for this component's properties
 UTransporter::UTransporter()
@@ -34,8 +35,14 @@ void UTransporter::BeginPlay()
 	for (AActor* TA : TriggerActors) {
 		APressurePlate* PressurePlate = Cast<APressurePlate>(TA);
 		if (PressurePlate) {
-			PressurePlate->OnActivated.AddDynamic(this, &UTransporter::OnPressurePlateActivated);
-			PressurePlate->OnDeactivated.AddDynamic(this, &UTransporter::OnPressurePlateDeactivated);
+			PressurePlate->OnActivated.AddDynamic(this, &UTransporter::OnTriggerActorActivated);
+			PressurePlate->OnDeactivated.AddDynamic(this, &UTransporter::OnTriggerActorDeactivated);
+			continue; //since it is a pressure plate, no need for testing it it is a key
+		}
+
+		ACollectableKey* CollectableKey = Cast<ACollectableKey>(TA);
+		if (CollectableKey) {
+			CollectableKey->OnCollected.AddDynamic(this, &UTransporter::OnTriggerActorActivated);
 		}
 	}
 }
@@ -76,7 +83,7 @@ void UTransporter::SetPoints(FVector Point1, FVector Point2)
 	ArePointSet = true;
 }
 
-void UTransporter::OnPressurePlateActivated()
+void UTransporter::OnTriggerActorActivated()
 {
 	ActivatedTriggerCount++;
 
@@ -84,7 +91,7 @@ void UTransporter::OnPressurePlateActivated()
 	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, Msg);
 }
 
-void UTransporter::OnPressurePlateDeactivated()
+void UTransporter::OnTriggerActorDeactivated()
 {
 	ActivatedTriggerCount--;
 

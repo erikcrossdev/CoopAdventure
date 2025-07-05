@@ -10,6 +10,8 @@
 #include "CollectableKeyHolder.h"
 #include "CollectableKey.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FCollectableKeyOnCollected);
+
 UCLASS()
 class COOPADVENTURE_API ACollectableKey : public AActor
 {
@@ -53,4 +55,6 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	ACollectableKeyHolder * KeyHolderRef;
 
+	UPROPERTY(BlueprintAssignable)
+	FCollectableKeyOnCollected OnCollected;
 };
